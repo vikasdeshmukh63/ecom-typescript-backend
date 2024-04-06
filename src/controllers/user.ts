@@ -22,11 +22,12 @@ export const newUser = TryCatch(
 
 
 
-
-
-
-
     
+
+
+
+
+
     const { name, email, photo, gender, role, _id, dob } = req.body
 
     const user = await User.create({
