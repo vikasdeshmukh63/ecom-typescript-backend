@@ -10,24 +10,6 @@ export const newUser = TryCatch(
     res: Response,
     next: NextFunction
   ) => {
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
     const { name, email, photo, gender, role, _id, dob } = req.body
 
     const user = await User.create({
