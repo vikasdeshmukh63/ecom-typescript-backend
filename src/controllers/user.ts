@@ -12,7 +12,6 @@ export const newUser = TryCatch(
     res: Response,
     next: NextFunction
   ) => {
-
     // extracting data from the body
     const { name, email, photo, gender, role, _id, dob } = req.body
 
@@ -26,7 +25,7 @@ export const newUser = TryCatch(
         message: `Welcome, ${user.name}`,
       })
 
-      // if user does not exist then checking for the fields provided
+    // if user does not exist then checking for the fields provided
     if (!_id || !name || !email || !photo || !gender || !role || !dob) {
       return next(new ErrorHandler('Please provide all the details', 400))
     }
@@ -43,9 +42,51 @@ export const newUser = TryCatch(
     })
 
     // returning response
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: `Welcome ${user.name}`,
+    })
+  }
+)
+
+// ! controller to get all users
+export const getAllUsers = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const users = await User.find({})
+
+    return res.status(200).json({
+      success: true,
+      users,
+    })
+  }
+)
+
+// ! controller to get particular user
+export const getUser = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = await User.findById(req.params.id)
+
+    if (!user) return next(new ErrorHandler('Invalid ID', 404))
+
+    return res.status(200).json({
+      success: true,
+      user,
+    })
+  }
+)
+
+// ! controller to delete particular user
+export const deleteUser = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = await User.findById(req.params.id)
+
+    if (!user) return next(new ErrorHandler('Invalid ID', 404))
+
+    await user.deleteOne()
+
+    return res.status(200).json({
+      success: true,
+      message: 'User deleted successfully',
     })
   }
 )
