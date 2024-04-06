@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 
+// new user request body type
 export interface NewUserRequestBody {
   _id: string
   name: string
@@ -10,6 +11,7 @@ export interface NewUserRequestBody {
   dob: Date
 }
 
+// controller function type 
 export type ControllerType = (
   req: Request,
   res: Response,
