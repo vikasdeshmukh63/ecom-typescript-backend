@@ -3,9 +3,9 @@ class ErrorHandler extends Error {
     public message: string,
     public statusCode: number
   ) {
-    super(message)
-    this.statusCode = statusCode
+    super(message);
+    this.statusCode = statusCode;
   }
 }
 
-export default ErrorHandler
+export default ErrorHandler;

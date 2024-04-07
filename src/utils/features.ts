@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 export const connectDB = () => {
   mongoose
@@ -6,5 +6,5 @@ export const connectDB = () => {
       dbName: 'EcommerceWithTypescript',
     })
     .then((c) => console.log(`db connected to ${c.connection.host}`))
-    .catch((e) => console.log(e))
-}
+    .catch((e) => console.log(e));
+};
