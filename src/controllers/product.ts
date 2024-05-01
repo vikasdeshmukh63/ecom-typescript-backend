@@ -10,7 +10,112 @@ import { Product } from '../models/product.js';
 import ErrorHandler from '../utils/utility-class.js';
 import { rm } from 'fs';
 import mongoose from 'mongoose';
+import { myCache } from '../app.js';
+import { invalidateCache } from '../utils/features.js';
 // import { faker } from '@faker-js/faker';
+
+// ! controller to get latest products (caching will be revalidate on create,update,delete product and new order)
+export const getLatestProducts = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let products = [];
+
+    // getting cached data
+    if (myCache.has('latest-products')) {
+      products = JSON.parse(myCache.get('latest-products') as string);
+    } else {
+      // finding latest products
+      products = await Product.find({}).sort({ createdAt: -1 }).limit(5);
+      // catch the product
+      myCache.set('latest-products', JSON.stringify(products));
+    }
+
+    // returning response
+    return res.status(200).json({
+      success: true,
+      products,
+    });
+  }
+);
+
+// ! controller to get all categories (caching will be revalidate on create,update,delete product and new order)
+export const getAllCategories = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let categories;
+
+    // getting the cached product
+    if (myCache.has('categories')) {
+      categories = JSON.parse(myCache.get('categories') as string);
+    } else {
+      // finding all categories with distinct it will return all the categories without repeating same category
+      categories = await Product.distinct('category');
+      // caching the data
+      myCache.set('categories', JSON.stringify(categories));
+    }
+
+    // returning response
+    return res.status(200).json({
+      success: true,
+      categories,
+    });
+  }
+);
+
+// ! controller to get admin products (caching will be revalidate on create,update,delete product and new order)
+export const getAdminProducts = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let products;
+
+    // getting cached data
+    if (myCache.has('all-products')) {
+      products = JSON.parse(myCache.get('all-products') as string);
+    } else {
+      // finding all products
+      products = await Product.find({});
+      // caching the product
+      myCache.set('all-products', JSON.stringify(products));
+    }
+
+    // returning response
+    return res.status(200).json({
+      success: true,
+      products,
+    });
+  }
+);
+
+// ! controller to get single product
+export const getSingleProduct = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let product;
+    const id = req.params.id;
+
+    // checking if product id is valid
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(new ErrorHandler('Invalid Product ID', 404));
+    }
+
+    // getting cached data
+    if (myCache.has(`product-${id}`)) {
+      product = JSON.parse(myCache.get(`product-${id}`) as string);
+    } else {
+      // finding product by id
+      product = await Product.findById(id);
+
+      // checking if product is found
+      if (!product) {
+        return next(new ErrorHandler('Product not Found', 404));
+      }
+      // caching the data
+      myCache.set(`product-${id}`, JSON.stringify(product));
+    }
+
+    // returning response
+    return res.status(200).json({
+      success: true,
+      product,
+    });
+  }
+);
 
 // ! controller to create new product
 export const newProduct = TryCatch(
@@ -47,76 +152,13 @@ export const newProduct = TryCatch(
       photo: photo?.path,
     });
 
+    // removing cached product data
+    await invalidateCache({ product: true });
+
     // returning response
     return res.status(201).json({
       success: true,
       message: 'Product created successfully',
-    });
-  }
-);
-
-// ! controller to get latest products
-export const getLatestProducts = TryCatch(
-  async (req: Request, res: Response, next: NextFunction) => {
-    // finding latest products
-    const products = await Product.find({}).sort({ createdAt: -1 }).limit(5);
-
-    // returning response
-    return res.status(200).json({
-      success: true,
-      products,
-    });
-  }
-);
-
-// ! controller to get all categories
-export const getAllCategories = TryCatch(
-  async (req: Request, res: Response, next: NextFunction) => {
-    // finding all categories with distinct it will return all the categories without repeating same category
-    const categories = await Product.distinct('category');
-
-    // returning response
-    return res.status(200).json({
-      success: true,
-      categories,
-    });
-  }
-);
-
-// ! controller to get admin products
-export const getAdminProducts = TryCatch(
-  async (req: Request, res: Response, next: NextFunction) => {
-    // finding all products
-    const products = await Product.find({});
-
-    // returning response
-    return res.status(200).json({
-      success: true,
-      products,
-    });
-  }
-);
-
-// ! controller to get single product
-export const getSingleProduct = TryCatch(
-  async (req: Request, res: Response, next: NextFunction) => {
-    // checking if product id is valid
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return next(new ErrorHandler('Invalid Product ID', 404));
-    }
-
-    // finding product by id
-    const product = await Product.findById(req.params.id);
-
-    // checking if product is found
-    if (!product) {
-      return next(new ErrorHandler('Product not Found', 404));
-    }
-
-    // returning response
-    return res.status(200).json({
-      success: true,
-      product,
     });
   }
 );
@@ -159,6 +201,8 @@ export const updateProduct = TryCatch(
     // saving updated product
     await product.save();
 
+    await invalidateCache({ product: true, productId: String(product._id) });
+
     // returning response
     return res.status(200).json({
       success: true,
@@ -190,6 +234,9 @@ export const deleteProduct = TryCatch(
 
     // deleting product
     await product.deleteOne();
+
+    // removing cached data
+    await invalidateCache({ product: true, productId: String(product._id) });
 
     // returning response
     return res.status(200).json({

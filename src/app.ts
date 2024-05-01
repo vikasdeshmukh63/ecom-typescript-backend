@@ -3,18 +3,31 @@ import express from 'express';
 import { errorMiddleware } from './middlewares/error.js';
 import userRoutes from './routes/user.js';
 import productRoutes from './routes/products.js';
+import orderRoutes from './routes/orders.js';
 import { connectDB } from './utils/features.js';
+import NodeCache from 'node-cache';
+import { config } from 'dotenv';
+import morgan from 'morgan';
+
+config({
+  path: './.env',
+});
 
 // port no.
-const port = 4000;
+const port = process.env.PORT || 4000;
+// mongodb url
+const mongoUri = process.env.MONGO_URI || '';
 
 // connecting to database
-connectDB();
+connectDB(mongoUri);
+
+export const myCache = new NodeCache();
 
 const app = express();
 
 // middleware
 app.use(express.json());
+app.use(morgan('dev'));
 
 // home route
 app.get('/', (req, res) => {
@@ -24,6 +37,7 @@ app.get('/', (req, res) => {
 // using routes
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/product', productRoutes);
+app.use('/api/v1/order', orderRoutes);
 
 // making the uploads folder static so that anyone can access it
 app.use('/uploads', express.static('uploads'));
