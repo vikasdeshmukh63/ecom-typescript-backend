@@ -27,7 +27,7 @@ export const adminOnly = TryCatch(
 
     // checking if user is admin
     if (user.role !== 'admin') {
-      return next(new ErrorHandler('You are not an Admin', 401));
+      return next(new ErrorHandler('You are not an Admin', 403));
     }
 
     // passing to next middleware
