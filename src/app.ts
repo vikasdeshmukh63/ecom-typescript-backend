@@ -10,6 +10,7 @@ import { config } from 'dotenv';
 import morgan from 'morgan';
 import paymentRoutes from "./routes/payment.js"
 import dashboardRoutes from "./routes/stats.js"
+import Stripe from 'stripe';
 
 config({
   path: './.env',
@@ -19,9 +20,13 @@ config({
 const port = process.env.PORT || 4000;
 // mongodb url
 const mongoUri = process.env.MONGO_URI || '';
+// stripe key
+const stripeKey = process.env.STRIPE_KEY || '';
 
 // connecting to database
 connectDB(mongoUri);
+
+export const stripe = new Stripe(stripeKey)
 
 export const myCache = new NodeCache();
 

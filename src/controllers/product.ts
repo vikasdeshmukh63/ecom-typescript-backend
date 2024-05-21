@@ -153,7 +153,7 @@ export const newProduct = TryCatch(
     });
 
     // removing cached product data
-    await invalidateCache({ product: true });
+    invalidateCache({ product: true, admin: true });
 
     // returning response
     return res.status(201).json({
@@ -201,7 +201,11 @@ export const updateProduct = TryCatch(
     // saving updated product
     await product.save();
 
-    await invalidateCache({ product: true, productId: String(product._id) });
+    invalidateCache({
+      product: true,
+      productId: String(product._id),
+      admin: true,
+    });
 
     // returning response
     return res.status(200).json({
@@ -236,7 +240,11 @@ export const deleteProduct = TryCatch(
     await product.deleteOne();
 
     // removing cached data
-    await invalidateCache({ product: true, productId: String(product._id) });
+    invalidateCache({
+      product: true,
+      productId: String(product._id),
+      admin: true,
+    });
 
     // returning response
     return res.status(200).json({

@@ -2,6 +2,28 @@ import { NextFunction, Request, Response } from 'express';
 import { TryCatch } from '../middlewares/error.js';
 import { Coupon } from '../models/coupon.js';
 import ErrorHandler from '../utils/utility-class.js';
+import { stripe } from '../app.js';
+
+// ! controller to create new payment
+export const createPaymentIntent = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { amount } = req.body;
+
+    if (!amount) {
+      return next(new ErrorHandler('Please enter amount', 400));
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Number(amount * 100),
+      currency: 'inr',
+    });
+
+    return res.status(201).json({
+      success: true,
+      clientSecret:paymentIntent.client_secret
+    });
+  }
+);
 
 // ! controller to create new coupon
 export const newCoupon = TryCatch(
