@@ -11,6 +11,7 @@ import morgan from 'morgan';
 import paymentRoutes from "./routes/payment.js"
 import dashboardRoutes from "./routes/stats.js"
 import Stripe from 'stripe';
+import cors from "cors"
 
 config({
   path: './.env',
@@ -35,6 +36,7 @@ const app = express();
 // middleware
 app.use(express.json());
 app.use(morgan('dev'));
+app.use(cors());
 
 // home route
 app.get('/', (req, res) => {
